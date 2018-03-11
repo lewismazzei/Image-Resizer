@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
 public class CS1006P2 {
 
     public static void main(String[] args) throws IOException {
@@ -24,34 +23,33 @@ public class CS1006P2 {
             System.out.println("Incorrect usage. Please use: java CS1006P2 <filepath> <width> <height>");
         }
 
+        File outputDir = new File("src/output");
+        try {
+            for (File f : outputDir.listFiles()) {
+                f.delete();
+            }
+            outputDir = new File("src/output-seams");
+            for (File f : outputDir.listFiles()) {
+                f.delete();
+            }
+        } catch (NullPointerException e) {
+            System.out.println(e.getMessage());
+        }
+
         BufferedImage image = null;
 
         try {
             image = ImageIO.read(new File("src/" + filepath));
         } catch (IOException e) {
             System.out.println(e.getMessage());
+            System.exit(0);
         }
 
-        for (int i = 0; i < 100; i++) {
-            double[][] energies = ImageProcessor.generateEnergyArray(image);
-            int[] lowestEnergySeam = ImageProcessor.lowestEnergySeam(energies);
-            for (int row = 0; row < image.getHeight(); row++) {
-                image.setRGB(lowestEnergySeam[row], row, 16711680);
-            }
+        if (Integer.parseInt(inputWidth) < image.getWidth()) ImageProcessor.reduceWidth(image, Integer.parseInt(inputWidth));
+        if (Integer.parseInt(inputWidth) > image.getWidth()) ImageProcessor.increaseWidth(image, Integer.parseInt(inputWidth));
 
-            File outputFile = new File("src/output-seams/" + i + ".png");
-            ImageIO.write(image, "png", outputFile);
-
-            image = removeSeam(image, lowestEnergySeam);
-
-            outputFile = new File("src/output/" + i + ".png");
-            ImageIO.write(image, "png", outputFile);
-        }
-
-        //System.out.println("\n----------------------------------\n");
-
-        //for (int energy : lowestEnergySeam) {
-        //System.out.println(energy);
+        //if (Integer.parseInt(inputWidth) < image.getHeight()) ImageProcessor.reduceHeight(image, inputHeight);
+        //if (Integer.parseInt(inputWidth) > image.getHeight()) ImageProcessor.increaseHeight(image, inputHeight);
     }
 }
 

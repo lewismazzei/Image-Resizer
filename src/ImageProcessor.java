@@ -1,5 +1,10 @@
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.WritableRaster;
+import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +29,6 @@ public class ImageProcessor {
 
                 //if the pixel is on an edge then use the pixel on the directly opposite side (vertcally for the y value, horizontally for the x value)
                 if (x == 0) {
-                    //System.out.println(new Color(image.getRGB(x, y)).toString() + x + " " + y);
                     x1 = image.getWidth() - 1;
                 } else {
                     x1 = x - 1;
@@ -72,6 +76,83 @@ public class ImageProcessor {
         return energies;
     }
 
+    public static void reduceWidth(BufferedImage image, int inputWidth) throws IOException{
+        int originalWidth = image.getWidth();
+        for (int i = 0; i < originalWidth - inputWidth; i++) {
+            double[][] energies = generateEnergyArray(image);
+            int[] lowestEnergySeam = lowestEnergySeam(energies);
+            BufferedImage tempImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+            for (int row = 0; row < image.getHeight(); row++) {
+                tempImage.setRGB(lowestEnergySeam[row], row, 16711680);
+            }
+
+            File outputFile = new File("src/output-seams/" + i + ".png");
+            ImageIO.write(tempImage, "png", outputFile);
+
+            image = removeSeam(image, lowestEnergySeam);
+
+            outputFile = new File("src/output/" + i + ".png");
+            ImageIO.write(image, "png", outputFile);
+        }
+    }
+
+    public static void increaseWidth(BufferedImage image, int inputWidth) throws IOException {
+        ColorModel cm = image.getColorModel();
+        boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
+        WritableRaster raster = image.copyData(null);
+        BufferedImage tempImage = new BufferedImage(cm, raster, isAlphaPremultiplied, null);
+        int originalWidth = image.getWidth();
+        int[][] lowestEnergySeams = new int[inputWidth - originalWidth][image.getHeight()];
+        for (int i = 0; i < inputWidth - originalWidth; i++) {
+            double[][] energies = generateEnergyArray(tempImage);
+            lowestEnergySeams[i] = lowestEnergySeam(energies);
+            tempImage = removeSeam(tempImage, lowestEnergySeams[i]);
+        }
+        for (int i = 0; i < lowestEnergySeams.length; i++) {
+            image = addSeam(image, lowestEnergySeams[i]);
+
+            File outputFile = new File("src/output/" + i + ".png");
+            ImageIO.write(image, "png", outputFile);
+        }
+    }
+
+    public static BufferedImage removeSeam(BufferedImage image, int[] lowestEnergySeam) {
+        BufferedImage newImage = new BufferedImage(image.getWidth()-1, image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+        for (int row = 0; row < newImage.getHeight(); row++) {
+            boolean seamFound = false;
+            for (int col = 0; col < newImage.getWidth(); col++) {
+                Color color = new Color(image.getRGB(col, row));
+                if (col == lowestEnergySeam[row] || seamFound) {
+                    color = new Color(image.getRGB(col+1, row));
+                    newImage.setRGB(col, row, getIntFromColor(color.getRed(), color.getGreen(), color.getBlue()));
+                    seamFound = true;
+                } else {
+                    newImage.setRGB(col, row, getIntFromColor(color.getRed(), color.getGreen(), color.getBlue()));
+                }
+            }
+        }
+        return newImage;
+    }
+
+    private static BufferedImage addSeam(BufferedImage image, int[] lowestEnergySeam) {
+        BufferedImage newImage = new BufferedImage(image.getWidth()+1, image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+        for (int row = 0; row < newImage.getHeight(); row++) {
+            boolean seamFound = false;
+            for (int col = 0; col < newImage.getWidth() - 1; col++) {
+                Color color = new Color(image.getRGB(col, row));
+                if (col == lowestEnergySeam[row]+1 || seamFound) {
+                    color = new Color(image.getRGB(col-1, row));
+                    newImage.setRGB(col, row, getIntFromColor(color.getRed(), color.getGreen(), color.getBlue()));
+                    seamFound = true;
+                } else {
+                    newImage.setRGB(col, row, getIntFromColor(color.getRed(), color.getGreen(), color.getBlue()));
+                }
+            }
+        }
+        return newImage;
+    }
+
+    //determines the seam with lowest cumulative energy
     public static int[] lowestEnergySeam(double[][] energies) {
         int duplicates = 0;
         //array to hold the indexes of each generated seam
@@ -79,8 +160,6 @@ public class ImageProcessor {
         //array to hold the the summed energy value of each generated seam
         Map<Double, Integer> seamEnergies = new HashMap<>();
         //loop through each cell in the top row
-        //System.out.println(energies[0].length);
-
         for (int startingCol = 0; startingCol < energies[0].length; startingCol++) {
             //variable to hold the next lowest energy column
             int nextIndex = startingCol;
@@ -98,29 +177,12 @@ public class ImageProcessor {
                 totalEnergy += energies[row][nextIndex];
             }
             //add total energy for current seam to hashmap with the corresponding final column index
-            //if (seamEnergies.containsKey(totalEnergy)) duplicates++;
             seamEnergies.put(totalEnergy, startingCol);
         }
 
         int lowestStartingCol = seamEnergies.get(Collections.min(seamEnergies.keySet()));
 
         return seamIndexes[lowestStartingCol];
-
-
-        //or (Map.Entry<Double, Integer> energy : seamEnergies.entrySet()) {
-        //System.out.println(energy);
-        //}
-        //System.out.println("d" + duplicates);
-
-        //double minEnergySum = Double.MAX_VALUE;
-        //int[] lowestEnergySeam = new int[energies.length];
-        //for (int col = 0; col < energies[0].length; col++) {
-        //    if (energies[energies.length - 1][col] < minEnergySum) {
-        //        minEnergySum = energies[energies.length - 1][col];
-        //        lowestEnergySeam = seamIndexes[col];
-        //    }
-        //}
-        //return lowestEnergySeam;
     }
 
     public static int nextIndex(double[][] energies, int col, int row) {
@@ -128,29 +190,6 @@ public class ImageProcessor {
         if (col < 0 || col >= energies[0].length || row < 0 || row >= energies.length) {
             throw new IllegalArgumentException();
         }
-        //if the current cell is on the left edge then there are only two cells to look at below it
-        //if (x == 0) {
-        //    //define these cells...
-        //    double e1 = energies[y+1][x];
-        //    double e2 = energies[y+1][x+1];
-        //    //...and determine what the lowest energy out of these two cells is
-        //    double lowestEnergy = Math.min(e1, e2);
-        ////if the current cell is on the right edge then there are only two cells to look at below it
-        //} else if (x == energies[0].length - 1) {
-        //    //define these cells...
-        //    double e1 = energies[y+1][x-1];
-        //    double e2 = energies[y+1][x];
-        //    //...and determine what the lowest energy out of these two cells is
-        //    double lowestEnergy;
-        ////if the current cell is not on an edge there are 3 cells to look at below it
-        //} else {
-        //    //define these cells...
-        //    double e1 = energies[y+1][x-1];
-        //    double e2 = energies[y+1][x];
-        //    double e3 = energies[y+1][x+1];
-        //    //...and determine what the lowest energy out of these three cells is
-        //    double lowestEnergy = Math.min(Math.min(e1, e2), e3);
-        //}
 
         //get the energy values of the three cells below the current cell
         //if cell is on an edge then set the non-existent cell's energy value to an extremely high number so it isn't chosen
@@ -165,24 +204,7 @@ public class ImageProcessor {
         return -1;
     }
 
-    public static BufferedImage removeSeam(BufferedImage image, int[] lowestEnergySeam) {
-        BufferedImage newImage = new BufferedImage(image.getWidth()-1, image.getHeight(), 5);
-        for (int row = 0; row < newImage.getHeight(); row++) {
-            boolean seamFound = false;
-            for (int col = 0; col < newImage.getWidth(); col++) {
-                Color color = new Color(image.getRGB(col, row));
-                if (color.getRed() == 255 && color.getGreen() == 0 && color.getBlue() == 0 || seamFound) {
-                    seamFound = true;
-                    color = new Color(image.getRGB(col+1, row));
-                    newImage.setRGB(col, row, getIntFromColor(color.getRed(), color.getGreen(), color.getBlue()));
-                } else {
-                    newImage.setRGB(col, row, getIntFromColor(color.getRed(), color.getGreen(), color.getBlue()));
-                }
-            }
-        }
-        return newImage;
-    }
-
+    //take in an RGB colour value and convert it to a java integer color value (credit: https://stackoverflow.com/a/18037185)
     public static int getIntFromColor(int Red, int Green, int Blue) {
         Red = (Red << 16) & 0x00FF0000; //Shift red 16-bits and mask out other stuff
         Green = (Green << 8) & 0x0000FF00; //Shift Green 8-bits and mask out other stuff
