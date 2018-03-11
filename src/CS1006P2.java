@@ -47,11 +47,6 @@ public class CS1006P2 {
             outputFile = new File("src/output/" + i + ".png");
             ImageIO.write(image, "png", outputFile);
         }
-
-        //System.out.println("\n----------------------------------\n");
-
-        //for (int energy : lowestEnergySeam) {
-        //System.out.println(energy);
     }
 
     public static double[][] generateEnergyArray(BufferedImage image) {
@@ -73,7 +68,6 @@ public class CS1006P2 {
 
                 //if the pixel is on an edge then use the pixel on the directly opposite side (vertcally for the y value, horizontally for the x value)
                 if (x == 0) {
-                    //System.out.println(new Color(image.getRGB(x, y)).toString() + x + " " + y);
                     x1 = image.getWidth() - 1;
                 } else {
                     x1 = x - 1;
@@ -122,14 +116,11 @@ public class CS1006P2 {
     }
 
     public static int[] lowestEnergySeam(double[][] energies) {
-        int duplicates = 0;
         //array to hold the indexes of each generated seam
         int[][] seamIndexes = new int[energies[0].length][energies.length];
         //array to hold the the summed energy value of each generated seam
         Map<Double, Integer> seamEnergies = new HashMap<>();
         //loop through each cell in the top row
-        //System.out.println(energies[0].length);
-
         for (int startingCol = 0; startingCol < energies[0].length; startingCol++) {
             //variable to hold the next lowest energy column
             int nextIndex = startingCol;
@@ -147,29 +138,12 @@ public class CS1006P2 {
                 totalEnergy += energies[row][nextIndex];
             }
             //add total energy for current seam to hashmap with the corresponding final column index
-            //if (seamEnergies.containsKey(totalEnergy)) duplicates++;
             seamEnergies.put(totalEnergy, startingCol);
         }
 
         int lowestStartingCol = seamEnergies.get(Collections.min(seamEnergies.keySet()));
 
         return seamIndexes[lowestStartingCol];
-
-
-        //or (Map.Entry<Double, Integer> energy : seamEnergies.entrySet()) {
-            //System.out.println(energy);
-        //}
-        //System.out.println("d" + duplicates);
-
-        //double minEnergySum = Double.MAX_VALUE;
-        //int[] lowestEnergySeam = new int[energies.length];
-        //for (int col = 0; col < energies[0].length; col++) {
-        //    if (energies[energies.length - 1][col] < minEnergySum) {
-        //        minEnergySum = energies[energies.length - 1][col];
-        //        lowestEnergySeam = seamIndexes[col];
-        //    }
-        //}
-        //return lowestEnergySeam;
     }
 
     public static int nextIndex(double[][] energies, int col, int row) {
@@ -177,30 +151,6 @@ public class CS1006P2 {
         if (col < 0 || col >= energies[0].length || row < 0 || row >= energies.length) {
             throw new IllegalArgumentException();
         }
-        //if the current cell is on the left edge then there are only two cells to look at below it
-        //if (x == 0) {
-        //    //define these cells...
-        //    double e1 = energies[y+1][x];
-        //    double e2 = energies[y+1][x+1];
-        //    //...and determine what the lowest energy out of these two cells is
-        //    double lowestEnergy = Math.min(e1, e2);
-        ////if the current cell is on the right edge then there are only two cells to look at below it
-        //} else if (x == energies[0].length - 1) {
-        //    //define these cells...
-        //    double e1 = energies[y+1][x-1];
-        //    double e2 = energies[y+1][x];
-        //    //...and determine what the lowest energy out of these two cells is
-        //    double lowestEnergy;
-        ////if the current cell is not on an edge there are 3 cells to look at below it
-        //} else {
-        //    //define these cells...
-        //    double e1 = energies[y+1][x-1];
-        //    double e2 = energies[y+1][x];
-        //    double e3 = energies[y+1][x+1];
-        //    //...and determine what the lowest energy out of these three cells is
-        //    double lowestEnergy = Math.min(Math.min(e1, e2), e3);
-        //}
-
         //get the energy values of the three cells below the current cell
         //if cell is on an edge then set the non-existent cell's energy value to an extremely high number so it isn't chosen
         double e1 = (col == 0) ? Double.MAX_VALUE : energies[row+1][col-1];
