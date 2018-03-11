@@ -81,13 +81,12 @@ public class ImageProcessor {
         for (int i = 0; i < originalWidth - inputWidth; i++) {
             double[][] energies = generateEnergyArray(image);
             int[] lowestEnergySeam = lowestEnergySeam(energies);
-            BufferedImage tempImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
             for (int row = 0; row < image.getHeight(); row++) {
-                tempImage.setRGB(lowestEnergySeam[row], row, 16711680);
+                image.setRGB(lowestEnergySeam[row], row, 16711680);
             }
 
             File outputFile = new File("src/output-seams/" + i + ".png");
-            ImageIO.write(tempImage, "png", outputFile);
+            ImageIO.write(image, "png", outputFile);
 
             image = removeSeam(image, lowestEnergySeam);
 
