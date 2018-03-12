@@ -7,9 +7,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.ParseException;
 
 public class JavaSwing extends JFrame implements KeyListener {
-    public static boolean showSeam = true;
+    public static boolean showSeam = false; //the generateseam method creates an ArrayOutOfBounds because of incorrect image size hence disabled
     private BufferedImage image;
     private JLabel label;
     private GridBagConstraints gbc = new GridBagConstraints();
@@ -102,7 +103,7 @@ public class JavaSwing extends JFrame implements KeyListener {
 
     public static void main(String[] args) {
         if (args.length == 0) {
-            System.out.println("Usage: java JavaSwing <image path> <change interval> <show seam>");
+            System.out.println("Usage: java JavaSwing <image path> <change interval>");
         } else {
             try {
                 BufferedImage image = ImageIO.read(new File(args[0]));
@@ -116,6 +117,10 @@ public class JavaSwing extends JFrame implements KeyListener {
                 System.exit(1);
             } catch (IOException ex) {
                 System.out.println("Error reading file, please check file path and permissions.");
+                System.exit(1);
+            } catch (NumberFormatException ex) {
+                System.out.println("One of your inputs was not the right type.");
+                System.out.println("Usage: java JavaSwing <image path> <change interval>");
                 System.exit(1);
             }
         }

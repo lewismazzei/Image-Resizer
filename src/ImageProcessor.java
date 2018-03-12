@@ -368,6 +368,8 @@ public class ImageProcessor {
             throw new IllegalArgumentException();
         }
 
+        //lowestenergyseam is the wrong size
+
         ColorModel cm = image.getColorModel();
         boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
         WritableRaster raster = image.copyData(null);
@@ -394,9 +396,6 @@ public class ImageProcessor {
 
             case 3:
                 for (int col = 0; col < image.getWidth(); col++) {
-                    if (col == 64) {
-                        System.out.println(lowestEnergySeam[col]);
-                    }
                     image.setRGB(lowestEnergySeam[col], col, 16711680);
                     outputFile = new File("src/output-seams/" + i + ".png");
                     ImageIO.write(image, "png", outputFile);
