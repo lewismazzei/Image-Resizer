@@ -76,7 +76,7 @@ public class ImageProcessor {
         return energies;
     }
 
-    public static void reduceWidth(BufferedImage image, int inputWidth) throws IOException{
+    public static BufferedImage reduceWidth(BufferedImage image, int inputWidth) throws IOException{
         int originalWidth = image.getWidth();
         for (int i = 0; i < originalWidth - inputWidth; i++) {
             double[][] energies = generateEnergyArray(image);
@@ -85,14 +85,9 @@ public class ImageProcessor {
                 image.setRGB(lowestEnergySeam[row], row, 16711680);
             }
 
-            File outputFile = new File("src/output-seams/" + i + ".png");
-            ImageIO.write(image, "png", outputFile);
-
             image = removeSeam(image, lowestEnergySeam);
-
-            outputFile = new File("src/output/" + i + ".png");
-            ImageIO.write(image, "png", outputFile);
         }
+        return image;
     }
 
     public static void increaseWidth(BufferedImage image, int inputWidth) throws IOException {
