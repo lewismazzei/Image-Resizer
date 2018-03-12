@@ -143,7 +143,7 @@ public class ImageProcessor {
         for (int i = 0; i < inputHeight - originalHeight; i++) {
             double[][] energies = generateEnergyArray(shrinkImage);
             lowestEnergySeams[i] = lowestHorizontalEnergySeam(energies);
-            shrinkImage = removeVerticalSeam(shrinkImage, lowestEnergySeams[i]);
+            shrinkImage = removeHorizontalSeam(shrinkImage, lowestEnergySeams[i]);
         }
         for (int i = 0; i < lowestEnergySeams.length; i++) {
 
@@ -198,7 +198,7 @@ public class ImageProcessor {
 
     private static BufferedImage addHorizontalSeam(BufferedImage image, int[] lowestEnergySeam) {
         BufferedImage newImage = new BufferedImage(image.getWidth(), image.getHeight()+1, BufferedImage.TYPE_3BYTE_BGR);
-        for (int col = 0; col < newImage.getWidth(); col++) {
+        for (int col = 0; col < newImage.getWidth() - 1; col++) {
             boolean seamFound = false;
             for (int row = 0; row < newImage.getHeight() - 1; row++) {
                 Color color = new Color(image.getRGB(col, row));
