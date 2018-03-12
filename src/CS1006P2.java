@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,19 +24,16 @@ public class CS1006P2 {
             System.out.println("Incorrect usage. Please use: java CS1006P2 <filepath> <width> <height>");
         }
 
-        File outputDir = new File("src/output");
-        try {
-            for (File f : outputDir.listFiles()) {
-                f.delete();
-            }
-            outputDir = new File("src/output-seams");
-            for (File f : outputDir.listFiles()) {
-                f.delete();
-            }
-        } catch (NullPointerException e) {
-            System.out.println(e.getMessage());
-        }
+        File seamOutputDir = new File("src/output-seams/");
+        File[] files = seamOutputDir.listFiles();
 
+        if (files != null) {
+            for (File f : files) {
+                if (!f.delete()) {
+                    System.out.println("Issue deleting files in output folder");
+                }
+            }
+        }
         BufferedImage image = null;
 
         try {
@@ -45,11 +43,18 @@ public class CS1006P2 {
             System.exit(0);
         }
 
-        if (Integer.parseInt(inputWidth) < image.getWidth()) ImageProcessor.reduceWidth(image, Integer.parseInt(inputWidth));
-        if (Integer.parseInt(inputWidth) > image.getWidth()) ImageProcessor.increaseWidth(image, Integer.parseInt(inputWidth));
+        if (Integer.parseInt(inputWidth) != image.getWidth()) {
+            if (Integer.parseInt(inputWidth) < image.getWidth()) image = ImageProcessor.reduceWidth(image, Integer.parseInt(inputWidth));
+            if (Integer.parseInt(inputWidth) > image.getWidth()) image = ImageProcessor.increaseWidth(image, Integer.parseInt(inputWidth));
+        }
 
-        //if (Integer.parseInt(inputWidth) < image.getHeight()) ImageProcessor.reduceHeight(image, inputHeight);
-        //if (Integer.parseInt(inputWidth) > image.getHeight()) ImageProcessor.increaseHeight(image, inputHeight);
+        if (Integer.parseInt(inputHeight) != image.getHeight()) {
+            if (Integer.parseInt(inputHeight) < image.getHeight()) image = ImageProcessor.reduceHeight(image, Integer.parseInt(inputHeight));
+            if (Integer.parseInt(inputHeight) > image.getHeight()) image = ImageProcessor.increaseHeight(image, Integer.parseInt(inputHeight));
+        }
+
+        File outputDir = new File("src/output.png");
+        ImageIO.write(image, "png", outputDir);
     }
 }
 
