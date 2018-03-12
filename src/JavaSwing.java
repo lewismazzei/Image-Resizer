@@ -7,7 +7,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.text.ParseException;
 
 public class JavaSwing extends JFrame implements KeyListener {
     public static boolean showSeam = false; //the generateseam method creates an ArrayOutOfBounds because of incorrect image size hence disabled
