@@ -50,6 +50,8 @@ public class JavaSwing extends JFrame implements KeyListener {
         label.requestFocus(); //request keyboard focus
         label.addKeyListener(this); //register this class as the place where the keyboard listening methods are
 
+        this.setTitle(image.getWidth() + " x " + image.getHeight());
+
         setVisible(true); //finally, display the window
     }
 
@@ -83,6 +85,7 @@ public class JavaSwing extends JFrame implements KeyListener {
                 }
                 if (outputImage != null) {
                     label.setIcon(new ImageIcon(outputImage));
+                    this.setTitle(outputImage.getWidth() + " x " + outputImage.getHeight());
                     image = outputImage;
                 } else {
                     System.out.println("Error processing image!");
