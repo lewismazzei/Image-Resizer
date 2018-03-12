@@ -27,7 +27,7 @@ public class ImageProcessor {
                 int x1; int x2 = x; int x3;
                 int y1; int y2 = y; int y3;
 
-                //if the pixel is on an edge then use the pixel on the directly opposite side (vertcally for the y value, horizontally for the x value)
+                //if the pixel is on an edge then use the pixel on the directly opposite side (vertically for the y value, horizontally for the x value)
                 if (x == 0) {
                     x1 = image.getWidth() - 1;
                 } else {
@@ -81,9 +81,6 @@ public class ImageProcessor {
         for (int i = 0; i < originalWidth - inputWidth; i++) {
             double[][] energies = generateEnergyArray(image);
             int[] lowestEnergySeam = lowestEnergySeam(energies);
-            for (int row = 0; row < image.getHeight(); row++) {
-                image.setRGB(lowestEnergySeam[row], row, 16711680);
-            }
 
             image = removeSeam(image, lowestEnergySeam);
         }
@@ -111,18 +108,16 @@ public class ImageProcessor {
     }
 
     public static BufferedImage removeSeam(BufferedImage image, int[] lowestEnergySeam) {
-        BufferedImage newImage = new BufferedImage(image.getWidth()-1, image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+        BufferedImage newImage = new BufferedImage(image.getWidth()-1, image.getHeight(), image.getType());
         for (int row = 0; row < newImage.getHeight(); row++) {
             boolean seamFound = false;
             for (int col = 0; col < newImage.getWidth(); col++) {
                 Color color = new Color(image.getRGB(col, row));
                 if (col == lowestEnergySeam[row] || seamFound) {
                     color = new Color(image.getRGB(col+1, row));
-                    newImage.setRGB(col, row, getIntFromColor(color.getRed(), color.getGreen(), color.getBlue()));
                     seamFound = true;
-                } else {
-                    newImage.setRGB(col, row, getIntFromColor(color.getRed(), color.getGreen(), color.getBlue()));
                 }
+                newImage.setRGB(col, row, color.getRGB());
             }
         }
         return newImage;
@@ -136,11 +131,9 @@ public class ImageProcessor {
                 Color color = new Color(image.getRGB(col, row));
                 if (col == lowestEnergySeam[row]+1 || seamFound) {
                     color = new Color(image.getRGB(col-1, row));
-                    newImage.setRGB(col, row, getIntFromColor(color.getRed(), color.getGreen(), color.getBlue()));
                     seamFound = true;
-                } else {
-                    newImage.setRGB(col, row, getIntFromColor(color.getRed(), color.getGreen(), color.getBlue()));
                 }
+                newImage.setRGB(col, row, color.getRGB());
             }
         }
         return newImage;
@@ -194,16 +187,7 @@ public class ImageProcessor {
         if      (Math.min(Math.min(e1, e2), e3) == e1) return col - 1;
         else if (Math.min(Math.min(e1, e2), e3) == e2) return col;
         else if (Math.min(Math.min(e1, e2), e3) == e3) return col + 1;
-        //mandatory defualt return value (will never be returned as it is impossible for all 3 of the above if statements to return false)
+        //mandatory default return value (will never be returned as it is impossible for all 3 of the above if statements to return false)
         return -1;
-    }
-
-    //take in an RGB colour value and convert it to a java integer color value (credit: https://stackoverflow.com/a/18037185)
-    public static int getIntFromColor(int Red, int Green, int Blue) {
-        Red = (Red << 16) & 0x00FF0000; //Shift red 16-bits and mask out other stuff
-        Green = (Green << 8) & 0x0000FF00; //Shift Green 8-bits and mask out other stuff
-        Blue = Blue & 0x000000FF; //Mask out anything not blue.
-
-        return 0xFF000000 | Red | Green | Blue; //0xFF000000 for 100% Alpha. Bitwise OR everything together.
     }
 }
