@@ -57,4 +57,3 @@ public class CS1006P2 {
         ImageIO.write(image, "png", outputDir);
     }
 }
-
