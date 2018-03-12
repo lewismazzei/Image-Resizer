@@ -1,4 +1,5 @@
 import javax.imageio.ImageIO;
+import javax.sound.midi.SysexMessage;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -83,9 +84,13 @@ public class ImageProcessor {
             int[] lowestEnergySeam = lowestVerticalEnergySeam(energies);
 
             //generate a set of images displaying what seams were selected
-            //generateSeamOutput(image, lowestVerticalEnergySeam, i, 1);
+
+            if (JavaSwing.showSeam) {
+                generateSeamOutput(image, lowestEnergySeam, i, 1);
+            }
 
             image = removeVerticalSeam(image, lowestEnergySeam);
+
         }
         return image;
     }
@@ -97,7 +102,9 @@ public class ImageProcessor {
             int[] lowestEnergySeam = lowestHorizontalEnergySeam(energies);
 
             //generate a set of images displaying what seams were selected
-            //generateSeamOutput(image, lowestVerticalEnergySeam, i, 2);
+            if (JavaSwing.showSeam) {
+                generateSeamOutput(image, lowestEnergySeam, i, 2);
+            }
 
             image = removeHorizontalSeam(image, lowestEnergySeam);
 
@@ -121,7 +128,10 @@ public class ImageProcessor {
             shrinkImage = removeVerticalSeam(shrinkImage, lowestEnergySeams[i]);
         }
         for (int i = 0; i < lowestEnergySeams.length; i++) {
-            //generateSeamOutput(seamImage, lowestEnergySeams[i], i, 3);
+            if (JavaSwing.showSeam) {
+                generateSeamOutput(image, lowestEnergySeams[i], i, 3);
+            }
+
             seamImage = addVerticalSeam(seamImage, lowestEnergySeams[i]);
 
             image = addVerticalSeam(image, lowestEnergySeams[i]);
@@ -146,6 +156,9 @@ public class ImageProcessor {
             shrinkImage = removeVerticalSeam(shrinkImage, lowestEnergySeams[i]);
         }
         for (int i = 0; i < lowestEnergySeams.length; i++) {
+            if (JavaSwing.showSeam) {
+                generateSeamOutput(image, lowestEnergySeams[i], i, 4);
+            }
 
             //generateSeamOutput(seamImage, lowestEnergySeams[i], i, 4);
             //seamImage = addHorizontalSeam(seamImage, lowestEnergySeams[i]);
@@ -155,6 +168,8 @@ public class ImageProcessor {
             //File outputFile = new File("src/output-seams/" + i + ".png");
             //ImageIO.write(seamImage, "png", outputFile);
             //seamImage = addVerticalSeam(seamImage, lowestEnergySeams[i]);
+
+
 
             image = addHorizontalSeam(image, lowestEnergySeams[i]);
 
@@ -353,29 +368,47 @@ public class ImageProcessor {
             throw new IllegalArgumentException();
         }
 
+        ColorModel cm = image.getColorModel();
+        boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
+        WritableRaster raster = image.copyData(null);
+        image = new BufferedImage(cm, raster, isAlphaPremultiplied, null);
+
         File outputFile;
 
         switch (type) {
-            case 1: for (int col = 0; col < image.getWidth(); col++) { image.setRGB(lowestEnergySeam[col], col, 16711680);
-                outputFile = new File("src/output-seams/" + i + ".png");
-                ImageIO.write(image, "png", outputFile); }
+            case 1:
+                for (int col = 0; col < image.getWidth(); col++) {
+                    image.setRGB(lowestEnergySeam[col], col, 16711680);
+                    outputFile = new File("src/output-seams/" + i + ".png");
+                    ImageIO.write(image, "png", outputFile);
+                }
                 break;
 
-            case 2: for (int row = 0; row < image.getHeight(); row++) { image.setRGB(row, lowestEnergySeam[row], 16711680);
-                outputFile = new File("src/output-seams/" + i + ".png");
-                ImageIO.write(image, "png", outputFile); }
+            case 2:
+                for (int row = 0; row < image.getHeight(); row++) {
+                    image.setRGB(row, lowestEnergySeam[row], 16711680);
+                    outputFile = new File("src/output-seams/" + i + ".png");
+                    ImageIO.write(image, "png", outputFile);
+                }
                 break;
 
-            case 3: for (int row = 0; row < image.getWidth() - 1; row++) { image.setRGB(lowestEnergySeam[row], row, 16711680);
-                outputFile = new File("src/output-seams/" + i + ".png");
-                ImageIO.write(image, "png", outputFile);
-                image = addVerticalSeam(image, lowestEnergySeam); }
+            case 3:
+                for (int col = 0; col < image.getWidth(); col++) {
+                    if (col == 64) {
+                        System.out.println(lowestEnergySeam[col]);
+                    }
+                    image.setRGB(lowestEnergySeam[col], col, 16711680);
+                    outputFile = new File("src/output-seams/" + i + ".png");
+                    ImageIO.write(image, "png", outputFile);
+                }
                 break;
 
-            case 4: for (int row = 0; row < image.getHeight() - 1; row++) { image.setRGB(row, lowestEnergySeam[row], 16711680);
-                outputFile = new File("src/output-seams/" + i + ".png");
-                ImageIO.write(image, "png", outputFile);
-                image = addVerticalSeam(image, lowestEnergySeam); }
+            case 4:
+                for (int row = 0; row < image.getHeight(); row++) {
+                    image.setRGB(row, lowestEnergySeam[row], 16711680);
+                    outputFile = new File("src/output-seams/" + i + ".png");
+                    ImageIO.write(image, "png", outputFile);
+                }
                 break;
         }
     }

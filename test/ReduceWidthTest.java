@@ -10,6 +10,8 @@ public class ReduceWidthTest {
     @Test
     public void reduceWidthTest() {
         BufferedImage inputImage = new BufferedImage(3,4, BufferedImage.TYPE_INT_RGB);
+
+
         for (int i=0; i<inputImage.getWidth(); i++) {
             for (int j=0; j<inputImage.getHeight(); j++) {
                 if(j == 2) {
