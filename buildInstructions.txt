@@ -1,0 +1,5 @@
+To build and run:
+javac *.java
+
+For terminal: java CS1002P2 <path to image> <target width> <target height>
+For GUI:      java JavaSwing <path to image> <change interval in px>
